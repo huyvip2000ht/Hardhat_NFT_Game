@@ -4,6 +4,15 @@ This project demonstrates a basic Hardhat use case. It comes with a sample contr
 
 Try running some of the following tasks:
 
+```
+npx i --save-dev hardhat
+npx i ......
+npx hardhat compile
+npx hardhat run ...
+```
+
+
+
 ```shell
 npx hardhat accounts
 npx hardhat compile
