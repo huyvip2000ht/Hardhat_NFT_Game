@@ -7,8 +7,11 @@ Try running some of the following tasks:
 ```
 npx i --save-dev hardhat
 npx i ......
+
 npx hardhat compile
-npx hardhat run ...
+npx hardhat run  .\scripts\sample-script.js
+npx hardhat node  
+npx hardhat verify --network mainnet DEPLOYED_CONTRACT_ADDRESS
 ```
 
 
