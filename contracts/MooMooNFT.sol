@@ -17,6 +17,7 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
         uint256 lossCount;
 
         //TODO battleTimeReady, breedingTimeReady
+    
     }
     uint256 maxBreed;
     uint256 coolDownBattle;
@@ -37,13 +38,17 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
         moomoos.push(MooMoo("NoName", 0, 0, 0, 0, 1, 0, 0, 0));
 
         moomooToOwner[tokenCounter] = to;
+        //TODO mint random stat MooMoo
 
-        _mint(to, tokenCounter);
+        _mint(to, tokenCounter);   
+        // TODO setTokenURI
         console.log(
             "A origin is mint with id = %s to account %s",
             tokenCounter,
             to
         );
+
+     
 
         tokenCounter++;
     }
@@ -65,13 +70,15 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
         moomooToOwner[tokenCounter] = msg.sender;
         moomoos[mooMoo1Id].breed++;
         moomoos[mooMoo2Id].breed++;
+        //TODO mint MooMoo based on parent's stat
         _mint(msg.sender, tokenCounter);
+        // TODO setTokenURI
         console.log("A new born MooMoo with id = %s", tokenCounter);
 
         tokenCounter++;
     }
 
-    function _getRandom() internal view returns (uint256) {
+    function _getRandom() internal view returns (uint256) {     //TODO chainlinkRandom
         return
             uint256(
                 keccak256(abi.encodePacked(block.difficulty, block.timestamp))

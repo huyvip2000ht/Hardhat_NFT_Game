@@ -3,9 +3,11 @@ const { ethers } = require("hardhat");
 
 
 describe('MooMooNFT', async () => {
-
-    beforeEach(async () => {
+    before(async () => {
         [owner, addr1, addr2] = await ethers.getSigners();
+
+    });
+    beforeEach(async () => {
         let MooMooNFT = await ethers.getContractFactory("MooMooNFT");
         mooMooNFT = await MooMooNFT.deploy();   //dont put let or const
         await mooMooNFT.deployed();
@@ -47,7 +49,7 @@ describe('MooMooNFT', async () => {
         expect(stat0.winCount).to.equal(stat1.lossCount);
         expect(stat0.lossCount).to.equal(stat1.winCount);
     });
-    it.only("Should not fight because not the owner", async () => {
+    it("Should not fight because not the owner", async () => {
         await mooMooNFT.connect(owner).mintOrigin(addr1.address);
         await mooMooNFT.connect(owner).mintOrigin(addr2.address);
         await expect(mooMooNFT.connect(addr1).fight(1, 0)).to.be.revertedWith("Not owner of this MooMoo");
