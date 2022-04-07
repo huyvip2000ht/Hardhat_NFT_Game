@@ -25,3 +25,18 @@ npx hardhat node
 node scripts/sample-script.js
 npx hardhat help
 ```
+
+
+tips: to transfer p2p
+A: sender
+B: reciever
+
+```
+token_contract.connect(A).approve(the_contract, amount); // from token_contract.transferFrom(A, B, amount);         //
+
+```
+
+
+testing:
+expect.to.equal để await vào trong
+revertedWith để await ra ngoài

@@ -43,20 +43,23 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
 
     function mintOrigin(address to) public {
         require(GrassToken.balanceOf(msg.sender) > mintFee);
+        console.log("transferFrom", msg.sender, "to", address(this));
+        // TODO approve on-chain
+        GrassToken.transferFrom(msg.sender, owner(), mintFee);
         moomoos.push(MooMoo("NoName", 0, 0, 0, 0, 1, 0, 0, 0));
 
         moomooToOwner[tokenCounter] = to;
         //TODO mint random stat MooMoo
 
         _mint(to, tokenCounter);
+        //console.log("balanceOf", to,":",balanceOf(to));
         // TODO setTokenURI
         console.log(
             "A origin is mint with id = %s to account %s",
             tokenCounter,
-            to
+            to , ownerOf(tokenCounter)
         );
 
-        GrassToken.transferFrom(msg.sender, owner(), mintFee);
         tokenCounter++;
     }
 
@@ -84,7 +87,6 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
         // TODO setTokenURI
         console.log("A new born MooMoo with id = %s", tokenCounter);
 
-        
         GrassToken.transferFrom(msg.sender, owner(), mintFee);
         tokenCounter++;
     }
@@ -163,7 +165,7 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
 
     modifier isOwner(uint256 mooMooId) {
         require(
-            moomooToOwner[mooMooId] == msg.sender,
+            ownerOf(mooMooId) == msg.sender,
             "Not owner of this MooMoo"
         );
         _;

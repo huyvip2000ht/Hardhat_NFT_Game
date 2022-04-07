@@ -16,19 +16,35 @@ describe('MooMooNFT', async () => {
         let MooMooNFT = await ethers.getContractFactory("MooMooNFT");
         mooMooNFT = await MooMooNFT.deploy(grassToken.address);   //dont put let or const
         await mooMooNFT.deployed();
+
+        await grassToken.connect(owner).approve(mooMooNFT.address, 10000);// approve owner
+
+        await grassToken.connect(owner).transfer(addr1.address, 100000);      // chuyển token từ owner sang addr1  
+        await grassToken.connect(addr1).approve(mooMooNFT.address, 10000);      // approve addr1
+
+        await grassToken.connect(owner).transfer(addr2.address, 100000);      // chuyển token từ owner sang addr2  
+        await grassToken.connect(addr2).approve(mooMooNFT.address, 10000);      // approve addr2
     });
 
 
-    it.only("Should mint and breed", async () => {
+    it("Should mint and breed", async () => {
 
-        console.log(await grassToken.connect(owner).balanceOf(owner.address));
-        await mooMooNFT.connect(owner).mintOrigin(addr1.address);
+
+        console.log("addr1 have", await grassToken.balanceOf(addr1.address));
+        console.log("MooMooNFT address:", await mooMooNFT.address);
+        await mooMooNFT.connect(addr1).mintOrigin(addr1.address);           // transferFrom add1 -> mooMooNFT
+
+        //TODO: bài toán ở đây là muốn approve addr1 -> owner       
+
+
         expect(await mooMooNFT.tokenCounter()).to.equal(1);
-        await mooMooNFT.connect(owner).mintOrigin(addr1.address);
+
+        console.log("Allowance:", await grassToken.allowance(addr1.address, mooMooNFT.address));
+
+
+        await mooMooNFT.connect(addr1).mintOrigin(addr1.address);
         expect(await mooMooNFT.tokenCounter()).to.equal(2);
 
-
-        grassToken.connect(owner).transfer(addr1.address, 10000);
         await mooMooNFT.connect(addr1).breed(0, 1);
         expect(await mooMooNFT.tokenCounter()).to.equal(3);
 
@@ -37,8 +53,8 @@ describe('MooMooNFT', async () => {
 
         await mooMooNFT.connect(owner).mintOrigin(addr1.address);
         await mooMooNFT.connect(owner).mintOrigin(addr2.address);
-
-        await expect(mooMooNFT.connect(addr2).breed(0, 1)).to.be.revertedWith("Not owner of this MooMoo");
+        //await mooMooNFT.connect(addr1).breed(1, 0);
+        await expect(mooMooNFT.connect(addr1).breed(1, 0)).to.be.revertedWith("Not owner of this MooMoo");
 
     });
     it("Should fight", async () => {
