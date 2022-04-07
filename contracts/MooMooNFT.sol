@@ -3,22 +3,26 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract MooMooNFT is ERC721URIStorage, Ownable {
+    IERC20 GrassToken;
     struct MooMoo {
-        string name;    //
-        uint16 eye;     //ipfs
-        uint16 ear;     //ipfs
-        uint16 mouth;   //ipfs
-        uint16 tail;    //ipfs
+        string name; //
+        uint16 eye; //ipfs
+        uint16 ear; //ipfs
+        uint16 mouth; //ipfs
+        uint16 tail; //ipfs
         uint16 star;
         uint16 breed;
         uint256 winCount;
         uint256 lossCount;
 
         //TODO battleTimeReady, breedingTimeReady
-    
     }
+    uint256 mintFee;
+    uint256 breedFee;
     uint256 maxBreed;
     uint256 coolDownBattle;
     uint256 coolDownBreed;
@@ -27,20 +31,24 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
     mapping(uint256 => address) moomooToOwner;
     uint256 public tokenCounter;
 
-    constructor() ERC721("MooMoo", "MOO") {
+    constructor(address token) ERC721("MooMoo", "MOO") {
         tokenCounter = 0;
         maxBreed = 5;
         coolDownBattle = 1 minutes;
         coolDownBreed = 1 hours;
+        GrassToken = IERC20(token);
+        mintFee = 1000;
+        breedFee = 1000;
     }
 
-    function mintOrigin(address to) public onlyOwner {
+    function mintOrigin(address to) public {
+        require(GrassToken.balanceOf(msg.sender) > mintFee);
         moomoos.push(MooMoo("NoName", 0, 0, 0, 0, 1, 0, 0, 0));
 
         moomooToOwner[tokenCounter] = to;
         //TODO mint random stat MooMoo
 
-        _mint(to, tokenCounter);   
+        _mint(to, tokenCounter);
         // TODO setTokenURI
         console.log(
             "A origin is mint with id = %s to account %s",
@@ -48,8 +56,7 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
             to
         );
 
-     
-
+        GrassToken.transferFrom(msg.sender, owner(), mintFee);
         tokenCounter++;
     }
 
@@ -58,6 +65,8 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
         isOwner(mooMoo1Id)
         isOwner(mooMoo2Id)
     {
+        require(GrassToken.balanceOf(msg.sender) > breedFee);
+
         require(
             moomoos[mooMoo1Id].breed < maxBreed ||
                 moomoos[mooMoo2Id].breed < maxBreed,
@@ -75,10 +84,13 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
         // TODO setTokenURI
         console.log("A new born MooMoo with id = %s", tokenCounter);
 
+        
+        GrassToken.transferFrom(msg.sender, owner(), mintFee);
         tokenCounter++;
     }
 
-    function _getRandom() internal view returns (uint256) {     //TODO chainlinkRandom
+    function _getRandom() internal view returns (uint256) {
+        //TODO chainlinkRandom
         return
             uint256(
                 keccak256(abi.encodePacked(block.difficulty, block.timestamp))

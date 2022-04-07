@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { ContractFunctionVisibility } = require("hardhat/internal/hardhat-network/stack-traces/model");
 
 
 describe('MooMooNFT', async () => {
@@ -8,22 +9,31 @@ describe('MooMooNFT', async () => {
 
     });
     beforeEach(async () => {
+        const GrassToken = await ethers.getContractFactory("GrassToken");
+        grassToken = await GrassToken.deploy();
+        await grassToken.deployed();
+
         let MooMooNFT = await ethers.getContractFactory("MooMooNFT");
-        mooMooNFT = await MooMooNFT.deploy();   //dont put let or const
+        mooMooNFT = await MooMooNFT.deploy(grassToken.address);   //dont put let or const
         await mooMooNFT.deployed();
     });
 
 
-    it("Should mint and breed", async () => {
+    it.only("Should mint and breed", async () => {
+
+        console.log(await grassToken.connect(owner).balanceOf(owner.address));
         await mooMooNFT.connect(owner).mintOrigin(addr1.address);
-        await expect(mooMooNFT.tokenCounter()).to.equal(1);
+        expect(await mooMooNFT.tokenCounter()).to.equal(1);
         await mooMooNFT.connect(owner).mintOrigin(addr1.address);
-        await expect(mooMooNFT.tokenCounter()).to.equal(2);
+        expect(await mooMooNFT.tokenCounter()).to.equal(2);
+
+
+        grassToken.connect(owner).transfer(addr1.address, 10000);
         await mooMooNFT.connect(addr1).breed(0, 1);
-        await expect(mooMooNFT.tokenCounter()).to.equal(3);
+        expect(await mooMooNFT.tokenCounter()).to.equal(3);
 
     });
-    it.only("Should not breed because not the owner of moomoo", async () => {
+    it("Should not breed because not the owner of moomoo", async () => {
 
         await mooMooNFT.connect(owner).mintOrigin(addr1.address);
         await mooMooNFT.connect(owner).mintOrigin(addr2.address);

@@ -20,11 +20,22 @@ async function main() {
   // console.log("Greeter deployed to:", greeter.address);
 
 
+  const GrassToken = await hre.ethers.getContractFactory("GrassToken");
+  const grassToken = await GrassToken.deploy();
+  await grassToken.deployed();
+  console.log("Grass Contract:" , grassToken.address);
+
   const MooMooNFT = await hre.ethers.getContractFactory("MooMooNFT");
-  const mooMooNFT = await MooMooNFT.deploy();
-  console.log(mooMooNFT.address);
-  await mooMooNFT.deployTransaction.wait(6)      // nếu ko có dòng này, thì contract chưa deploy lên mà đã chạy verify rồi!!!
-  await verify(mooMooNFT.address)
+  const mooMooNFT = await MooMooNFT.deploy(grassToken.address);
+  await mooMooNFT.deployed();
+
+  console.log("MooMooNFT:",mooMooNFT.address);
+
+
+
+  //verify
+  // await mooMooNFT.deployTransaction.wait(6)      // nếu ko có dòng này, thì contract chưa deploy lên mà đã chạy verify rồi!!!
+  // await verify(mooMooNFT.address)
 
 }
 
