@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
 
 contract MooMooNFT is ERC721URIStorage, Ownable {
     IERC20 GrassToken;
@@ -43,9 +44,12 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
     }
 
     function mintOrigin(address to) public {
-        require(GrassToken.balanceOf(msg.sender) > mintFee);
-        console.log("transferFrom", msg.sender, "to", address(this));
-        GrassToken.transferFrom(msg.sender, owner(), mintFee);
+        require(
+            GrassToken.balanceOf(to) >= mintFee,
+            "MooMooNFT: Not enough balance to mint origin"
+        );
+        console.log("transferFrom", to, "to", owner());
+        GrassToken.transferFrom(to, owner(), mintFee);
         _mint(to, tokenCounter);
 
         uint256 random = _getRandom();
@@ -54,7 +58,6 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
         uint16 mouth = uint16((random / 10000) % 100);
         uint16 tail = uint16((random / 1000000) % 100);
         moomoos.push(MooMoo("NoName", eye, ear, mouth, tail, 1, 0, 0, 0, 0, 0));
-
 
         // TODO setTokenURI
         console.log(
@@ -72,25 +75,27 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
         isOwner(mooMoo1Id)
         isOwner(mooMoo2Id)
     {
-        require(GrassToken.balanceOf(msg.sender) > breedFee);
+        require(
+            GrassToken.balanceOf(msg.sender) > breedFee,
+            "MooMooNFT: Not enough balance to breed"
+        );
 
         require(
             moomoos[mooMoo1Id].breed < maxBreed ||
                 moomoos[mooMoo2Id].breed < maxBreed,
-            "Maximum breeding"
+            "MooMooNFT: Maximum breeding"
         );
         // TODO require(); not time to breed
 
         GrassToken.transferFrom(msg.sender, owner(), mintFee);
         _mint(msg.sender, tokenCounter);
-        //TODO mint MooMoo based on parent's stat
 
         //50% from mom, 50% from dad
         uint256 random = _getRandom();
         uint16 randomEye = uint16(random % 2);
-        uint16 randomEar = uint16((random / 2) % 2);
-        uint16 randomMouth = uint16((random / 2) % 2);
-        uint16 randomTail = uint16((random / 2) % 2);
+        uint16 randomEar = uint16((random / 4) % 2);
+        uint16 randomMouth = uint16((random / 8) % 2);
+        uint16 randomTail = uint16((random / 16) % 2);
         uint16 eye = moomoos[mooMoo1Id].eye *
             randomEye +
             moomoos[mooMoo2Id].eye *
@@ -188,7 +193,9 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
             uint16 star,
             uint16 breed,
             uint256 winCount,
-            uint256 lossCount
+            uint256 lossCount,
+            uint256 parent1Id,
+            uint256 parent2Id
         )
     {
         MooMoo memory mooMoo = moomoos[mooMooId];
@@ -201,12 +208,17 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
             mooMoo.star,
             mooMoo.breed,
             mooMoo.winCount,
-            mooMoo.lossCount
+            mooMoo.lossCount,
+            mooMoo.parent1Id,
+            mooMoo.parent2Id
         );
     }
 
     modifier isOwner(uint256 mooMooId) {
-        require(ownerOf(mooMooId) == msg.sender, "Not owner of this MooMoo");
+        require(
+            ownerOf(mooMooId) == msg.sender,
+            "MooMooNFT: Not owner of this MooMoo"
+        );
         _;
     }
 }

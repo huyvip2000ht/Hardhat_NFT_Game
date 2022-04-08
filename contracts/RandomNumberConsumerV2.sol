@@ -6,6 +6,8 @@ import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 ///dsadasdsa
+import "@openzeppelin/contracts/utils/Context.sol";
+
 contract RandomNumberConsumerV2 is VRFConsumerBaseV2 {
   VRFCoordinatorV2Interface immutable COORDINATOR;
   LinkTokenInterface immutable LINKTOKEN;
