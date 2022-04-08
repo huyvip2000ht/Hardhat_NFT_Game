@@ -17,13 +17,25 @@ describe('MooMooNFT', async () => {
         mooMooNFT = await MooMooNFT.deploy(grassToken.address);   //dont put let or const
         await mooMooNFT.deployed();
 
-        await grassToken.connect(owner).approve(mooMooNFT.address, 10000);// approve owner
+        let MisteryBox = await ethers.getContractFactory("MisteryBox");
+        misteryBox = await MisteryBox.deploy(mooMooNFT.address, grassToken.address);
+        await misteryBox.deployed();
+
+
+        let maxUnit256 = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+
+        await grassToken.connect(owner).approve(mooMooNFT.address, maxUnit256);// approve owner
+        await grassToken.connect(owner).approve(misteryBox.address, maxUnit256);
 
         await grassToken.connect(owner).transfer(addr1.address, 100000);      // chuyển token từ owner sang addr1  
-        await grassToken.connect(addr1).approve(mooMooNFT.address, 10000);      // approve addr1
+        await grassToken.connect(addr1).approve(mooMooNFT.address, maxUnit256);      // approve addr1
+        await grassToken.connect(addr1).approve(misteryBox.address, maxUnit256);
 
         await grassToken.connect(owner).transfer(addr2.address, 100000);      // chuyển token từ owner sang addr2  
-        await grassToken.connect(addr2).approve(mooMooNFT.address, 10000);      // approve addr2
+        await grassToken.connect(addr2).approve(mooMooNFT.address, maxUnit256);      // approve addr2
+        await grassToken.connect(addr2).approve(misteryBox.address, maxUnit256);
+
+
     });
 
 
@@ -81,6 +93,10 @@ describe('MooMooNFT', async () => {
         await expect(mooMooNFT.connect(addr1).fight(1, 0)).to.be.revertedWith("Not owner of this MooMoo");
     });
 
+    it.only("Should buy misteryBox", async () => {
+        await misteryBox.connect(owner).buyMisteryBox(0);   //bronze
+        expect(await misteryBox.balanceOf(owner.address)).to.equal(1);
+    });
 });
 
 

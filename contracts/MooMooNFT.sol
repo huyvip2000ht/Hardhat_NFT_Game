@@ -18,6 +18,8 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
         uint16 breed;
         uint256 winCount;
         uint256 lossCount;
+        uint256 parent1Id;
+        uint256 parent2Id;
 
         //TODO battleTimeReady, breedingTimeReady
     }
@@ -28,7 +30,6 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
     uint256 coolDownBreed;
 
     MooMoo[] public moomoos;
-    mapping(uint256 => address) moomooToOwner;
     uint256 public tokenCounter;
 
     constructor(address token) ERC721("MooMoo", "MOO") {
@@ -44,22 +45,25 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
     function mintOrigin(address to) public {
         require(GrassToken.balanceOf(msg.sender) > mintFee);
         console.log("transferFrom", msg.sender, "to", address(this));
-        // TODO approve on-chain
         GrassToken.transferFrom(msg.sender, owner(), mintFee);
-        moomoos.push(MooMoo("NoName", 0, 0, 0, 0, 1, 0, 0, 0));
-
-        moomooToOwner[tokenCounter] = to;
-        //TODO mint random stat MooMoo
-
         _mint(to, tokenCounter);
-        //console.log("balanceOf", to,":",balanceOf(to));
+
+        uint256 random = _getRandom();
+        uint16 eye = uint16(random % 100);
+        uint16 ear = uint16((random / 100) % 100);
+        uint16 mouth = uint16((random / 10000) % 100);
+        uint16 tail = uint16((random / 1000000) % 100);
+        moomoos.push(MooMoo("NoName", eye, ear, mouth, tail, 1, 0, 0, 0, 0, 0));
+
+
         // TODO setTokenURI
         console.log(
             "A origin is mint with id = %s to account %s",
             tokenCounter,
-            to , ownerOf(tokenCounter)
+            to
         );
-
+        console.log("eye %s ear %s mouth %s ", eye, ear, mouth);
+        console.log("tail %s", tail);
         tokenCounter++;
     }
 
@@ -77,17 +81,55 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
         );
         // TODO require(); not time to breed
 
-        moomoos.push(MooMoo("NoName", 0, 0, 0, 0, 1, 0, 0, 0));
+        GrassToken.transferFrom(msg.sender, owner(), mintFee);
+        _mint(msg.sender, tokenCounter);
+        //TODO mint MooMoo based on parent's stat
 
-        moomooToOwner[tokenCounter] = msg.sender;
+        //50% from mom, 50% from dad
+        uint256 random = _getRandom();
+        uint16 randomEye = uint16(random % 2);
+        uint16 randomEar = uint16((random / 2) % 2);
+        uint16 randomMouth = uint16((random / 2) % 2);
+        uint16 randomTail = uint16((random / 2) % 2);
+        uint16 eye = moomoos[mooMoo1Id].eye *
+            randomEye +
+            moomoos[mooMoo2Id].eye *
+            (1 - randomEye);
+        uint16 ear = moomoos[mooMoo1Id].ear *
+            randomEar +
+            moomoos[mooMoo2Id].ear *
+            (1 - randomEar);
+        uint16 mouth = moomoos[mooMoo1Id].mouth *
+            randomMouth +
+            moomoos[mooMoo2Id].mouth *
+            (1 - randomMouth);
+        uint16 tail = moomoos[mooMoo1Id].tail *
+            randomTail +
+            moomoos[mooMoo2Id].tail *
+            (1 - randomTail);
+        moomoos.push(
+            MooMoo(
+                "NoName",
+                eye,
+                ear,
+                mouth,
+                tail,
+                1,
+                0,
+                0,
+                0,
+                mooMoo1Id,
+                mooMoo2Id
+            )
+        );
+
         moomoos[mooMoo1Id].breed++;
         moomoos[mooMoo2Id].breed++;
-        //TODO mint MooMoo based on parent's stat
-        _mint(msg.sender, tokenCounter);
+
         // TODO setTokenURI
         console.log("A new born MooMoo with id = %s", tokenCounter);
-
-        GrassToken.transferFrom(msg.sender, owner(), mintFee);
+        console.log("eye %s ear %s mouth %s", eye, ear, mouth);
+        console.log("tail %s", tail);
         tokenCounter++;
     }
 
@@ -164,10 +206,7 @@ contract MooMooNFT is ERC721URIStorage, Ownable {
     }
 
     modifier isOwner(uint256 mooMooId) {
-        require(
-            ownerOf(mooMooId) == msg.sender,
-            "Not owner of this MooMoo"
-        );
+        require(ownerOf(mooMooId) == msg.sender, "Not owner of this MooMoo");
         _;
     }
 }
